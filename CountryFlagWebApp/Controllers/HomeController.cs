@@ -19,7 +19,26 @@ namespace CountryFlagWebApp.Controllers
 
         public IActionResult Index(string activeCat = "all", string activeGam = "all")
         {
-            var data = new CountryListViewModel
+            var session = new CountrySession(HttpContext.Session);
+            session.SetActiveCat(activeCat);
+            session.SetActiveGam(activeGam);
+
+            // if no count value in session, use data in cookie to restore fave teams in session 
+            int? count = session.GetMyCountryCount();
+            if (count == null)
+            {
+                var cookies = new CountryCookies(Request.Cookies);
+                string[] ids = cookies.GetMyCountryIds();
+
+                List<Country> mycountries = new List<Country>();
+                if (ids.Length > 0)
+                    mycountries = context.Countries.Include(t => t.Category)
+                        .Include(t => t.Game)
+                        .Where(t => ids.Contains(t.CountryID)).ToList();
+                session.SetMyCountries(mycountries);
+            }
+
+            var model = new CountryListViewModel
             {
                 ActiveCat = activeCat,
                 ActiveGam = activeGam,
@@ -34,34 +53,52 @@ namespace CountryFlagWebApp.Controllers
             if (activeGam != "all")
                 query = query.Where(
                     t => t.Game.GameID.ToLower() == activeGam.ToLower());
-            data.Countries = query.ToList();
+            model.Countries = query.ToList();
 
-            return View(data);
+            return View(model);
         }
 
-        [HttpPost]
-        public IActionResult Details(CountryViewModel model)
-        {
-            Utility.LogCountryClick(model.Country.CountryID);
-
-            TempData["ActiveCat"] = model.ActiveCat;
-            TempData["ActiveGam"] = model.ActiveGam;
-            return RedirectToAction("Details", new { ID = model.Country.CountryID });
-        }
-
-        [HttpGet]
         public IActionResult Details(string id)
         {
+            var session = new CountrySession(HttpContext.Session);
             var model = new CountryViewModel
             {
                 Country = context.Countries
                     .Include(t => t.Category)
                     .Include(t => t.Game)
                     .FirstOrDefault(t => t.CountryID == id),
-                ActiveCat = TempData?["ActiveCat"]?.ToString() ?? "all",
-                ActiveGam = TempData?["ActiveGam"]?.ToString() ?? "all"
+                ActiveGam = session.GetActiveGam(),
+                ActiveCat = session.GetActiveCat()
             };
             return View(model);
         }
+
+        [HttpPost]
+        public IActionResult Details(CountryViewModel model)
+        {
+            model.Country = context.Countries
+                .Include(t => t.Category)
+                .Include(t => t.Game)
+                .Where(t => t.CountryID == model.Country.CountryID)
+                .FirstOrDefault();
+
+            var session = new CountrySession(HttpContext.Session);
+            var countries = session.GetMyCountries();
+            countries.Add(model.Country);
+            session.SetMyCountries(countries);
+
+            var cookies = new CountryCookies(Response.Cookies);
+            cookies.SetMyCountryIds(countries);
+
+            TempData["message"] = $"{model.Country.Name} added to your favorites";
+
+            return RedirectToAction("Index",
+                new
+                {
+                    ActiveCat = session.GetActiveCat(),
+                    ActiveGam = session.GetActiveGam()
+                });
+        }
     }
 }
+

@@ -18,7 +18,12 @@ namespace CountryFlagWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.AddRouting(options => options.LowercaseUrls = true);
+
+            services.AddMemoryCache();
+            services.AddSession();
+
+            services.AddControllersWithViews().AddNewtonsoftJson();
 
             services.AddDbContext<CountryContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("CountryContext")));
@@ -31,15 +36,16 @@ namespace CountryFlagWebApp
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
+            app.UseSession();
+
             app.UseRouting();
 
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    name: "custom",
-                    pattern: "{controller=Home}/{action=Index}/conf/{activeConf}/div/{activeDiv}");
+                    name: "",
+                    pattern: "{controller=Home}/{action=Index}/cat/{activeCat}/gam/{activeGam}");
 
                 endpoints.MapControllerRoute(
                     name: "default",

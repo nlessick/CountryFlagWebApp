@@ -14,8 +14,11 @@ namespace CountryFlagWebApp.Models
             get => categories;
             set
             {
-                categories = value;
-                categories.Insert(0, new Category { CategoryID = "all", Name = "All" });
+                categories = new List<Category>
+                {
+                    new Category {CategoryID = "all", Name = "All"}
+                };
+                categories.AddRange(value);
             }
         }
 
@@ -25,8 +28,11 @@ namespace CountryFlagWebApp.Models
             get => games;
             set
             {
-                games = value;
-                games.Insert(0, new Game { GameID = "all", Name = "All" });
+                games = new List<Game>
+                {
+                    new Game { GameID = "all", Name = "All"}
+                };
+                games.AddRange(value);
             }
         }
 
