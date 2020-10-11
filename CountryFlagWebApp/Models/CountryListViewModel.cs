@@ -37,11 +37,11 @@ namespace CountryFlagWebApp.Models
         }
 
          //methods to help view determine active link
-        public string CheckActiveCat(string c) =>
-            c.ToLower() == ActiveCat.ToLower() ? "active" : "";
+        public string CheckActiveCat(string t) =>
+            t.ToLower() == ActiveCat.ToLower() ? "active" : "";
 
-        public string CheckActiveGam(string g) =>
-            g.ToLower() == ActiveGam.ToLower() ? "active" : "";
+        public string CheckActiveGam(string t) =>
+            t.ToLower() == ActiveGam.ToLower() ? "active" : "";
     
     }
 }
