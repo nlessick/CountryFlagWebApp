@@ -44,7 +44,7 @@ namespace CountryFlagWebApp
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
-                    name: "",
+                    name: "custom",
                     pattern: "{controller=Home}/{action=Index}/cat/{activeCat}/gam/{activeGam}");
 
                 endpoints.MapControllerRoute(

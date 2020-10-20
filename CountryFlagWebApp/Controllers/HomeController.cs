@@ -17,11 +17,14 @@ namespace CountryFlagWebApp.Controllers
             context = ctx;
         }
 
-        public IActionResult Index(string activeCat = "all", string activeGam = "all")
+        public IActionResult Index(CountryListViewModel model)
         {
+            model.Categories = context.Categories.ToList();
+            model.Games = context.Games.ToList();
+
             var session = new CountrySession(HttpContext.Session);
-            session.SetActiveCat(activeCat);
-            session.SetActiveGam(activeGam);
+            session.SetActiveCat(model.ActiveCat);
+            session.SetActiveGam(model.ActiveGam);
 
             // if no count value in session, use data in cookie to restore fave teams in session 
             int? count = session.GetMyCountryCount();
@@ -38,21 +41,14 @@ namespace CountryFlagWebApp.Controllers
                 session.SetMyCountries(mycountries);
             }
 
-            var model = new CountryListViewModel
-            {
-                ActiveCat = activeCat,
-                ActiveGam = activeGam,
-                Categories = context.Categories.ToList(),
-                Games = context.Games.ToList()
-            };
 
             IQueryable<Country> query = context.Countries;
-            if (activeCat != "all")
+            if (model.ActiveCat != "all")
                 query = query.Where(
-                    t => t.Category.CategoryID.ToLower() == activeCat.ToLower());
-            if (activeGam != "all")
+                    t => t.Category.CategoryID.ToLower() == model.ActiveCat.ToLower());
+            if (model.ActiveGam != "all")
                 query = query.Where(
-                    t => t.Game.GameID.ToLower() == activeGam.ToLower());
+                    t => t.Game.GameID.ToLower() == model.ActiveGam.ToLower());
             model.Countries = query.ToList();
 
             return View(model);
